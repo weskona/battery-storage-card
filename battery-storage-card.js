@@ -3,36 +3,121 @@
  * v1.7.0 – + Batterie-Icon
  */
 
-function _fmtDuration(mins) {
-  if (mins < 60) return mins + ' Min.';
+function _fmtDuration(mins, hass) {
+  const minStr = _t(hass, 'minShort');
+  const hStr   = _t(hass, 'hours');
+  const hMinStr= _t(hass, 'hoursMin');
+  if (mins < 60) return mins + minStr;
   const h = Math.floor(mins / 60);
   const m = mins % 60;
-  return m > 0 ? h + ' Std. ' + m + ' Min.' : h + ' Std.';
+  return m > 0 ? h + hMinStr + m + minStr : h + hStr;
 }
 
-function _dischargeSuffix(w, usableNow) {
+function _dischargeSuffix(w, usableNow, hass) {
   if (usableNow === null || usableNow <= 0) return '';
   const absKw = Math.abs(w) / 1000;
   if (absKw <= 0) return '';
   const mins = Math.round(usableNow / absKw * 60);
-  return ' · ⏱ ' + _fmtDuration(mins);
+  return ' · ⏱ ' + _t(hass, 'remaining') + _fmtDuration(mins, hass);
 }
 
-function _chargeSuffix(w, usableCap, usableNow) {
+function _chargeSuffix(w, usableCap, usableNow, hass) {
   if (usableCap === null || usableNow === null) return '';
   const remaining = usableCap - usableNow;
   if (remaining <= 0) return '';
   const absKw = Math.abs(w) / 1000;
   if (absKw <= 0) return '';
   const mins = Math.round(remaining / absKw * 60);
-  return ' · ⏱ ' + _fmtDuration(mins);
+  return ' · ⏱ ' + _t(hass, 'fullIn') + _fmtDuration(mins, hass);
+}
+
+const TRANSLATIONS = {
+  de: {
+    defaultTitle:   'Batteriespeicher',
+    charging:       '⚡ Lädt',
+    discharging:    '↓ Entlädt',
+    idle:           '● Bereit',
+    chargingDot:    '⚡ Lädt · ',
+    dischargingDot: '↓ Entlädt · ',
+    fullIn:         'Voll in ',
+    remaining:      'Reicht noch ',
+    kwhUsable:      ' kWh nutzbar',
+    usable:         'Nutzbar: ',
+    of:             ' kWh von ',
+    charged:        '📥 Geladen',
+    discharged:     '📤 Entladen',
+    balance:        '⚖️ Bilanz',
+    roundtrip:      '🔄 Roundtrip',
+    min:            'Min. ',
+    minShort:       ' min',
+    hours:          ' Std.',
+    hoursMin:       ' Std. ',
+    // editor labels
+    lTitle:         '📝 Überschrift',
+    lSoc:           '🔋 SOC Entity (%)',
+    lCap:           '⚡ Gesamtkapazität (kWh)',
+    lMinSoc:        '⬇️ Minimaler SOC / Entladetiefe (%)',
+    lSoh:           '🏥 SOH Entity (%)',
+    lPower:         '⚡ Leistungssensor (W)',
+    lInvert:        '🔁 Vorzeichen invertieren (positiv = Entladen)',
+    lColorC:        '🎨 Farbe Laden',
+    lColorD:        '🎨 Farbe Entladen',
+    lEnergyIn:      '📥 Energie geladen heute (kWh)',
+    lEnergyOut:     '📤 Energie entladen heute (kWh)',
+    lEnergyInTot:   '📥 Energie geladen gesamt (kWh)',
+    lEnergyOutTot:  '📤 Energie entladen gesamt (kWh)',
+    lShowSoh:       '🏥 SOH anzeigen',
+    lShowDaily:     '📊 Tageswerte anzeigen',
+  },
+  en: {
+    defaultTitle:   'Battery Storage',
+    charging:       '⚡ Charging',
+    discharging:    '↓ Discharging',
+    idle:           '● Idle',
+    chargingDot:    '⚡ Charging · ',
+    dischargingDot: '↓ Discharging · ',
+    fullIn:         'Full in ',
+    remaining:      'Remaining ',
+    kwhUsable:      ' kWh usable',
+    usable:         'Usable: ',
+    of:             ' kWh of ',
+    charged:        '📥 Charged',
+    discharged:     '📤 Discharged',
+    balance:        '⚖️ Balance',
+    roundtrip:      '🔄 Roundtrip',
+    min:            'Min. ',
+    minShort:       ' min',
+    hours:          ' h',
+    hoursMin:       ' h ',
+    // editor labels
+    lTitle:         '📝 Title',
+    lSoc:           '🔋 SOC Entity (%)',
+    lCap:           '⚡ Total capacity (kWh)',
+    lMinSoc:        '⬇️ Minimum SOC / depth of discharge (%)',
+    lSoh:           '🏥 SOH Entity (%)',
+    lPower:         '⚡ Power sensor (W)',
+    lInvert:        '🔁 Invert sign (positive = discharging)',
+    lColorC:        '🎨 Charging color',
+    lColorD:        '🎨 Discharging color',
+    lEnergyIn:      '📥 Energy charged today (kWh)',
+    lEnergyOut:     '📤 Energy discharged today (kWh)',
+    lEnergyInTot:   '📥 Energy charged total (kWh)',
+    lEnergyOutTot:  '📤 Energy discharged total (kWh)',
+    lShowSoh:       '🏥 Show SOH',
+    lShowDaily:     '📊 Show daily energy',
+  },
+};
+
+function _t(hass, key) {
+  const lang = (hass?.language || 'en').startsWith('de') ? 'de' : 'en';
+  return TRANSLATIONS[lang][key] ?? TRANSLATIONS['en'][key] ?? key;
 }
 
 class BatteryStorageCard extends HTMLElement {
 
   static getStubConfig() {
     return {
-      title:        'Batteriespeicher',
+      title:        'Battery Storage',
       soc_entity:   'sensor.battery_soc',
       capacity_kwh: 10,
       min_soc:      10,
@@ -327,9 +412,9 @@ class BatteryStorageCard extends HTMLElement {
       <ha-card style="position:relative">
         <div class="status-badge idle" id="status-badge">
           <div class="status-dot"></div>
-          <span id="status-text">Bereit</span>
+          <span id="status-text">Idle</span>
         </div>
-        <div class="label" id="card-title">Ladestand</div>
+        <div class="label" id="card-title">Battery</div>
         <div class="main-row">
 
           <!-- Battery SVG icon -->
@@ -390,19 +475,19 @@ class BatteryStorageCard extends HTMLElement {
         <!-- Energy in/out -->
         <div class="energy-row" id="energy-row" style="display:none">
           <div class="energy-tile charging" id="energy-in-tile">
-            <span class="energy-label">📥 Geladen</span>
+            <span class="energy-label" id="lbl-energy-in"></span>
             <span class="energy-val" id="energy-in">—</span>
           </div>
           <div class="energy-tile discharging" id="energy-out-tile">
-            <span class="energy-label">📤 Entladen</span>
+            <span class="energy-label" id="lbl-energy-out"></span>
             <span class="energy-val" id="energy-out">—</span>
           </div>
           <div class="energy-tile" id="energy-net-tile">
-            <span class="energy-label">⚖️ Bilanz</span>
+            <span class="energy-label" id="lbl-balance"></span>
             <span class="energy-val" id="energy-net">—</span>
           </div>
           <div class="energy-tile" id="energy-rt-tile" style="display:none">
-            <span class="energy-label">🔄 Roundtrip</span>
+            <span class="energy-label" id="lbl-roundtrip"></span>
             <span class="energy-val" id="energy-rt">—</span>
           </div>
         </div>
@@ -451,22 +536,22 @@ class BatteryStorageCard extends HTMLElement {
         if (this._config.power_invert) wBadge = -wBadge;
         if (wBadge > 10) {
           badge.className      = 'status-badge charging';
-          statusText.textContent = '⚡ Lädt';
+          statusText.textContent = _t(this._hass, 'charging');
         } else if (wBadge < -10) {
           badge.className      = 'status-badge discharging';
-          statusText.textContent = '↓ Entlädt';
+          statusText.textContent = _t(this._hass, 'discharging');
         } else {
           badge.className      = 'status-badge idle';
-          statusText.textContent = '● Bereit';
+          statusText.textContent = _t(this._hass, 'idle');
         }
       } else {
         badge.className      = 'status-badge idle';
-        statusText.textContent = '● Bereit';
+        statusText.textContent = _t(this._hass, 'idle');
       }
     } else {
       badge.style.display = 'none';
     }
-    this.shadowRoot.getElementById('card-title').textContent = this._config.title || 'Ladestand';
+    this.shadowRoot.getElementById('card-title').textContent = this._config.title || _t(this._hass, 'defaultTitle');
     this.shadowRoot.getElementById('val').textContent = pct !== null ? Math.round(pct) + '%' : '—';
     this.shadowRoot.getElementById('bar').style.width = (pct ?? 0) + '%';
 
@@ -487,11 +572,11 @@ class BatteryStorageCard extends HTMLElement {
     this.shadowRoot.getElementById('kwh-stored').textContent = storedKwh !== null
       ? storedKwh.toFixed(1) + ' kWh' : '';
 
-    // kWh nutzbar
+    // kWh usable
     const usableNow = (cap !== null && pct !== null && minSoc !== null)
       ? Math.max(0, (pct - minSoc) / 100 * cap) : null;
     this.shadowRoot.getElementById('kwh-usable').textContent = usableNow !== null
-      ? '· ' + usableNow.toFixed(1) + ' kWh nutzbar' : '';
+      ? '· ' + usableNow.toFixed(1) + _t(this._hass,'kwhUsable') : '';
 
     // ── Leistung ──
     const powerRow  = this.shadowRoot.getElementById('power-row');
@@ -508,13 +593,13 @@ class BatteryStorageCard extends HTMLElement {
           : Math.round(absW) + ' W';
         if (w > 10) {
           powerRow.className    = 'power-row charging';
-          powerText.textContent = '⚡ Lädt · ' + valStr + _chargeSuffix(w, usableCap, usableNow);
+          powerText.textContent = _t(this._hass,'chargingDot') + valStr + _chargeSuffix(w, usableCap, usableNow, this._hass);
         } else if (w < -10) {
           powerRow.className    = 'power-row discharging';
-          powerText.textContent = '↓ Entlädt · ' + valStr + _dischargeSuffix(w, usableNow);
+          powerText.textContent = _t(this._hass,'dischargingDot') + valStr + _dischargeSuffix(w, usableNow, this._hass);
         } else {
           powerRow.className    = 'power-row idle';
-          powerText.textContent = '● Bereit';
+          powerText.textContent = _t(this._hass, 'idle');
         }
       } else {
         powerRow.className    = 'power-row idle';
@@ -547,6 +632,16 @@ class BatteryStorageCard extends HTMLElement {
       sohRow.style.display = 'none';
     }
     } // end show_soh
+
+    // ── Energy tile labels (language) ──
+    const lblIn  = this.shadowRoot.getElementById('lbl-energy-in');
+    const lblOut = this.shadowRoot.getElementById('lbl-energy-out');
+    const lblBal = this.shadowRoot.getElementById('lbl-balance');
+    const lblRt  = this.shadowRoot.getElementById('lbl-roundtrip');
+    if (lblIn)  lblIn.textContent  = _t(this._hass, 'charged');
+    if (lblOut) lblOut.textContent = _t(this._hass, 'discharged');
+    if (lblBal) lblBal.textContent = _t(this._hass, 'balance');
+    if (lblRt)  lblRt.textContent  = _t(this._hass, 'roundtrip');
 
     // ── Energie ──
     const energyRow = this.shadowRoot.getElementById('energy-row');
@@ -606,8 +701,8 @@ class BatteryStorageCard extends HTMLElement {
       const minKwh    = cap !== null ? (cap * minSoc / 100) : null;
       const minKwhStr = minKwh !== null ? ` (${minKwh.toFixed(1)} kWh)` : '';
       const usableStr = (usableCap !== null && cap !== null)
-        ? ` · Nutzbar: ${usableCap.toFixed(1)} kWh von ${cap.toFixed(1)} kWh` : '';
-      minLabel.textContent = `Min. ${minSoc}%${minKwhStr}${usableStr}`;
+        ? ` · ${_t(this._hass,'usable')}${usableCap.toFixed(1)}${_t(this._hass,'of')}${cap.toFixed(1)} kWh` : '';
+      minLabel.textContent = `${_t(this._hass,'min')}${minSoc}%${minKwhStr}${usableStr}`;
     } else {
       marker.style.display = 'none';
       minLabel.textContent = '';
