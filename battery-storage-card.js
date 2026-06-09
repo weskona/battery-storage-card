@@ -1,6 +1,6 @@
 /**
  * battery-storage-card
- * v1.7.0 – + Batterie-Icon
+ * v1.0.0
  */
 
 function _fmtDuration(mins, hass) {
@@ -196,126 +196,43 @@ class BatteryStorageCard extends HTMLElement {
     this.attachShadow({ mode: 'open' });
     this.shadowRoot.innerHTML = `
       <style>
-        :host { --soc-color: #00c853; display: block; }
+        :host {
+          --soc-color: #00c853;
+          display: block;
+          container-type: inline-size;
+        }
+
         ha-card {
-          padding: 20px 24px;
+          padding: 16px 20px;
           display: flex;
           flex-direction: column;
-          gap: 12px;
+          gap: 10px;
+          position: relative;
         }
+
+        /* ── Label / title ── */
         .label {
-          font-size: 12px;
+          font-size: 11px;
           text-transform: uppercase;
           letter-spacing: 1px;
           opacity: 0.5;
         }
-        /* main row: icon left, content right */
-        .main-row {
-          display: flex;
-          align-items: center;
-          gap: 18px;
-        }
-        /* ── Battery icon ── */
-        .battery-icon {
-          flex-shrink: 0;
-          width: 44px;
-          position: relative;
-        }
-        .battery-icon svg {
-          display: block;
-          width: 44px;
-          height: auto;
-          overflow: visible;
-        }
-        /* ── Right content ── */
-        .content { flex: 1; display: flex; flex-direction: column; gap: 6px; }
-        .soc-row {
-          display: flex;
-          align-items: baseline;
-          gap: 10px;
-        }
-        .soc-value {
-          font-size: 52px;
-          font-weight: 700;
-          line-height: 1;
-          color: var(--soc-color);
-          transition: color 0.5s ease;
-        }
-        .soc-kwh {
-          font-size: 16px;
-          font-weight: 500;
-          opacity: 0.6;
-          display: flex;
-          align-items: baseline;
-          gap: 6px;
-          flex-wrap: wrap;
-        }
-        .kwh-usable { font-size: 13px; opacity: 0.7; }
-        /* Leistungsanzeige */
-        .power-row {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          font-size: 14px;
-          font-weight: 600;
-          min-height: 22px;
-        }
-        .power-row.charging    { color: var(--color-charging, #f06292); }
-        .power-row.discharging { color: var(--color-discharging, #4db6ac); }
-        .power-row.idle        { opacity: 0.35; }
-        .power-dot {
-          width: 7px; height: 7px;
-          border-radius: 50%;
-          background: currentColor;
-          flex-shrink: 0;
-        }
-        .charging    .power-dot { animation: blink 1s step-end infinite; }
-        .discharging .power-dot { animation: blink 1.4s step-end infinite; }
-        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
-        /* Balken */
-        .bar-wrap { position: relative; }
-        .bar-bg {
-          height: 6px;
-          border-radius: 6px;
-          background: rgba(128,128,128,0.2);
-          overflow: visible;
-          position: relative;
-        }
-        .bar-fill {
-          height: 100%;
-          border-radius: 6px;
-          background: var(--soc-color);
-          transition: width 0.8s ease, background 0.5s ease;
-        }
-        .min-marker {
-          position: absolute;
-          top: -4px;
-          width: 2px;
-          height: 16px;
-          background: rgba(255,255,255,0.4);
-          border-radius: 2px;
-          transform: translateX(-50%);
-        }
-        .min-label {
-          font-size: 10px;
-          opacity: 0.4;
-          text-align: left;
-          margin-top: 2px;
-        }
-        /* Status badge */
+
+        /* ── Status badge ── */
         .status-badge {
           position: absolute;
-          top: 16px;
+          top: 14px;
           right: 16px;
           display: flex;
           align-items: center;
           gap: 5px;
-          padding: 4px 10px;
+          padding: 3px 9px;
           border-radius: 20px;
           font-size: 11px;
           font-weight: 700;
           letter-spacing: 0.3px;
           transition: all 0.4s ease;
+          white-space: nowrap;
         }
         .status-badge.charging {
           background: rgba(var(--color-charging-rgb, 240,98,146), 0.15);
@@ -341,41 +258,172 @@ class BatteryStorageCard extends HTMLElement {
         .status-badge.charging    .status-dot { animation: blink 1s step-end infinite; }
         .status-badge.discharging .status-dot { animation: blink 1.4s step-end infinite; }
 
-        /* Energy row */
-        .energy-row {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-          gap: 8px;
+        /* ── Main row: icon + content ── */
+        .main-row {
+          display: flex;
+          align-items: center;
+          gap: 14px;
         }
-        .energy-tile {
-          background: rgba(128,128,128,0.08);
-          border-radius: 10px;
-          padding: 8px 10px;
+
+        /* ── Battery icon ── */
+        .battery-icon {
+          flex-shrink: 0;
+          width: 36px;
+        }
+        .battery-icon svg {
+          display: block;
+          width: 36px;
+          height: auto;
+          overflow: visible;
+        }
+
+        /* ── Right content ── */
+        .content {
+          flex: 1;
+          min-width: 0;
           display: flex;
           flex-direction: column;
-          gap: 3px;
+          gap: 4px;
         }
-        .energy-label {
-          font-size: 9px;
-          text-transform: uppercase;
-          letter-spacing: 0.7px;
-          opacity: 0.45;
-        }
-        .energy-val {
-          font-size: 16px;
-          font-weight: 700;
-        }
-        .energy-tile.charging    .energy-val { color: var(--color-charging,    #f06292); }
-        .energy-tile.discharging .energy-val { color: var(--color-discharging, #4db6ac); }
 
-        /* SOC bar row */
+        .soc-row {
+          display: flex;
+          align-items: baseline;
+          gap: 8px;
+          flex-wrap: wrap;
+        }
+        .soc-value {
+          font-size: 44px;
+          font-weight: 700;
+          line-height: 1;
+          color: var(--soc-color);
+          transition: color 0.5s ease;
+        }
+        .soc-kwh {
+          font-size: 14px;
+          font-weight: 500;
+          opacity: 0.6;
+          display: flex;
+          align-items: baseline;
+          gap: 5px;
+          flex-wrap: wrap;
+          min-width: 0;
+        }
+        .kwh-usable { font-size: 12px; opacity: 0.7; }
+
+        /* ── Power row ── */
+        .power-row {
+          display: flex;
+          align-items: center;
+          gap: 7px;
+          font-size: 13px;
+          font-weight: 600;
+          min-height: 20px;
+          flex-wrap: wrap;
+        }
+        .power-row.charging    { color: var(--color-charging, #f06292); }
+        .power-row.discharging { color: var(--color-discharging, #4db6ac); }
+        .power-row.idle        { opacity: 0.35; }
+        .power-dot {
+          width: 7px; height: 7px;
+          border-radius: 50%;
+          background: currentColor;
+          flex-shrink: 0;
+        }
+        .charging    .power-dot { animation: blink 1s step-end infinite; }
+        .discharging .power-dot { animation: blink 1.4s step-end infinite; }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
+
+        /* ── Bars ── */
+        .bar-wrap { position: relative; }
+        .bar-bg {
+          height: 6px;
+          border-radius: 6px;
+          background: rgba(128,128,128,0.2);
+          overflow: visible;
+          position: relative;
+        }
+        .bar-fill {
+          height: 100%;
+          border-radius: 6px;
+          background: var(--soc-color);
+          transition: width 0.8s ease, background 0.5s ease;
+        }
+        .min-marker {
+          position: absolute;
+          top: -4px;
+          width: 2px;
+          height: 14px;
+          background: rgba(255,255,255,0.4);
+          border-radius: 2px;
+          transform: translateX(-50%);
+        }
+        .min-label {
+          font-size: 10px;
+          opacity: 0.4;
+          text-align: left;
+          margin-top: 2px;
+          line-height: 1.4;
+        }
+
+        /* ── SOC bar row ── */
         .soc-bar-row {
           display: flex;
           align-items: center;
           gap: 10px;
         }
-        .soc-bar-row .bar-wrap {
-          flex: 1;
+        .soc-bar-row .bar-wrap { flex: 1; }
+
+        /* ── Energy tiles ── */
+        .energy-row {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+          gap: 6px;
+        }
+        .energy-tile {
+          background: rgba(128,128,128,0.08);
+          border-radius: 8px;
+          padding: 7px 9px;
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+        .energy-label {
+          font-size: 9px;
+          text-transform: uppercase;
+          letter-spacing: 0.6px;
+          opacity: 0.45;
+          white-space: nowrap;
+        }
+        .energy-val {
+          font-size: 15px;
+          font-weight: 700;
+        }
+        .energy-tile.charging    .energy-val { color: var(--color-charging,    #f06292); }
+        .energy-tile.discharging .energy-val { color: var(--color-discharging, #4db6ac); }
+
+        /* ── Container query: narrow (smartphone column) ── */
+        @container (max-width: 300px) {
+          .soc-value { font-size: 36px; }
+          .battery-icon { width: 28px; }
+          .battery-icon svg { width: 28px; }
+          .status-badge { font-size: 10px; padding: 2px 7px; }
+          .energy-val { font-size: 13px; }
+          .soc-kwh { font-size: 12px; }
+          .kwh-usable { font-size: 11px; }
+        }
+
+        /* ── Container query: wide (desktop) ── */
+        @container (min-width: 480px) {
+          ha-card { padding: 20px 24px; gap: 12px; }
+          .soc-value { font-size: 52px; }
+          .battery-icon { width: 44px; }
+          .battery-icon svg { width: 44px; }
+          .soc-kwh { font-size: 16px; }
+          .energy-val { font-size: 16px; }
+          .power-row { font-size: 14px; }
+          .energy-row { gap: 8px; }
+          .energy-tile { padding: 8px 10px; }
         }
         /* SOH bar */
         .soh-row {
