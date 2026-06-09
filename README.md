@@ -41,7 +41,7 @@ Or manually:
 1. Open HACS in Home Assistant
 2. Go to **Frontend**
 3. Click the three dots menu → **Custom repositories**
-4. Add `https://github.com/YOUR_USERNAME/battery-storage-card` as **Lovelace**
+4. Add `https://github.com/weskona/battery-storage-card` as **Lovelace**
 5. Install **Battery Storage Card**
 6. Reload your browser
 
