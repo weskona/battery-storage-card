@@ -1,23 +1,34 @@
 # Battery Storage Card
 
 A custom Home Assistant Lovelace card for monitoring home battery storage systems.
-Works with any battery system that exposes sensors to Home Assistant (SMA, Fronius, Huawei, Sonnen, E3DC, Growatt, etc.).
+Works with any battery system that exposes sensors to Home Assistant (SMA, Fronius, Huawei, Sonnen, E3DC, Growatt, Marstek, and more).
 
 ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-compatible-blue)
 ![HACS](https://img.shields.io/badge/HACS-Custom-orange)
+![Version](https://img.shields.io/badge/version-1.1.0-green)
+
+## Preview
+
+| Light Mode | Dark Mode |
+|:---:|:---:|
+| ![Light Mode](light.png) | ![Dark Mode](dark.png) |
 
 ## Features
 
 - 🔋 **SOC display** – large percentage with stored kWh and usable kWh
 - ⚡ **Power monitoring** – charge/discharge power with estimated time remaining
 - 🏥 **SOH bar** – state of health with color-coded indicator
-- 📊 **SOC bar** – visual fill level with minimum SOC marker
-- 📥 **Daily energy** – charged / discharged / balance for today
-- 🔄 **Roundtrip efficiency** – long-term in vs. out calculation
-- 🎨 **Customizable colors** – separate colors for charging and discharging
-- 🏷️ **Status badge** – charging / discharging / idle indicator (top right)
-- ⏱️ **Time estimates** – time until full or time remaining on current power
+- 📊 **SOC bar** – visual fill level with configurable minimum SOC marker
+- 🔋 **Battery icon** – animated SVG icon reflecting current fill level and color
+- 🏷️ **Status badge** – charging / discharging / idle indicator (top right corner)
+- 📥 **Daily energy tiles** – charged / discharged / balance for today
+- 🔄 **Roundtrip efficiency** – calculated from lifetime totals
+- 🎨 **Customizable colors** – separate color pickers for charging and discharging states
+- ⬇️ **Minimum SOC** – configurable depth of discharge with visual bar marker
 - 🔁 **Invert support** – for sensors where positive = discharging
+- 🌍 **Auto language** – German / English based on HA language setting
+- 📱 **Responsive layout** – optimized for both desktop and smartphone
+- 🖱️ **Full GUI editor** – all options configurable without YAML
 
 ## Installation
 
@@ -26,7 +37,7 @@ Works with any battery system that exposes sensors to Home Assistant (SMA, Froni
 1. Open HACS in Home Assistant
 2. Go to **Frontend**
 3. Click the three dots menu → **Custom repositories**
-4. Add `https://github.com/weskona/battery-storage-card` as **Lovelace**
+4. Add `https://github.com/YOUR_USERNAME/battery-storage-card` as **Lovelace**
 5. Install **Battery Storage Card**
 6. Reload your browser
 
@@ -65,7 +76,7 @@ show_daily_energy: true
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `title` | string | `Ladestand` | Card title |
+| `title` | string | `Battery Storage` | Card title |
 | `soc_entity` | entity | **required** | State of charge sensor (%) |
 | `capacity_kwh` | number | — | Total battery capacity in kWh |
 | `min_soc` | number | — | Minimum SOC / depth of discharge (%) |
@@ -79,7 +90,7 @@ show_daily_energy: true
 | `color_charging` | color | `#f06292` | Color for charging state |
 | `color_discharging` | color | `#4db6ac` | Color for discharging state |
 | `show_soh` | boolean | `true` | Show/hide SOH bar |
-| `show_daily_energy` | boolean | `true` | Show/hide daily energy tiles |
+| `show_daily_energy` | boolean | `true` | Show/hide daily energy tiles and roundtrip |
 
 ## Power Sensor
 
@@ -91,13 +102,19 @@ If your sensor uses the opposite convention, enable **Invert** in the UI editor 
 
 ## Roundtrip Efficiency
 
-The roundtrip efficiency is calculated from lifetime totals:
+Calculated from lifetime totals:
 
 ```
 roundtrip = energy_out_total / energy_in_total × 100 %
 ```
 
-This gives a long-term efficiency figure rather than a daily snapshot.
+Requires `energy_in_total_entity` and `energy_out_total_entity` to be configured.
+
+## Language
+
+The card automatically uses the language set in your Home Assistant profile:
+- 🇩🇪 German (`de`)
+- 🇬🇧 English (all other languages)
 
 ## License
 
