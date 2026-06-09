@@ -1,7 +1,7 @@
 # Battery Storage Card
 
 A custom Home Assistant Lovelace card for monitoring home battery storage systems.
-Works with any battery system that exposes sensors to Home Assistant (SMA, Fronius, Huawei, Sonnen, E3DC, Growatt, Marstek, and more).
+Works with any battery system that exposes sensors to Home Assistant (SMA, Fronius, Huawei, Sonnen, E3DC, Growatt, Marstek, Alpha ESS, and more).
 
 ![Home Assistant](https://img.shields.io/badge/Home%20Assistant-compatible-blue)
 ![HACS](https://img.shields.io/badge/HACS-Custom-orange)
@@ -33,6 +33,10 @@ Works with any battery system that exposes sensors to Home Assistant (SMA, Froni
 ## Installation
 
 ### HACS (recommended)
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=weskona&repository=battery-storage-card&category=lovelace)
+
+Or manually:
 
 1. Open HACS in Home Assistant
 2. Go to **Frontend**
